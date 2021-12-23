@@ -9,7 +9,7 @@ services:
     container_name: surgio
     restart: always
     volumes:
-      - /Users/lowking/surgio:/surgio
+      - /home/lowking/surgio:/surgio
     tty: true
     ports:
       - "8889:8889"
