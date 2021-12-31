@@ -1,0 +1,6 @@
+Client: iot
+iot:
+  qq: 123123              # 此处填写登录的QQ号
+  host: "http://172.17.0.1"    # 默认IP为本地
+  port: 8888                  # 默认端口为 8888
+  receive_self_msg: False     # 不接收自己发出的消息

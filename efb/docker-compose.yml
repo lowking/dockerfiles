@@ -1,0 +1,13 @@
+ews:
+  image: akyakya/efb-v2
+  container_name: eqs
+  restart: always
+  volumes:
+    - .:/root/.ehforwarderbot/profiles/default/
+    - ./cust.sh:/cust/cust.sh
+    # - /etc/localtime:/etc/localtime:ro
+    # - /etc/timezone:/etc/timezone:ro
+  extra_hosts:
+    - "mainhost:172.21.0.1"
+  environment:
+    - CUST_SHELL_FILE=/cust/cust.sh
