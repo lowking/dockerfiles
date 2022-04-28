@@ -17,6 +17,7 @@ cloneRepo() {
     branchName=$3
     if [ ! -d "/${repoName}/.git" ]; then
         echo "█未检查到${repoName}仓库，clone..."
+        rm -fr /"${repoName}"
         git clone "${repoUrl}" /"${repoName}"
         git -C "/${repoName}" fetch --all
         git -C "/${repoName}" checkout "${branchName}"
