@@ -8,8 +8,12 @@ if [ -z "$targetBranch" ]; then
     targetBranch="master"
 fi
 
-echo -e "$KEY" >/root/.ssh/id_rsa
-chmod 600 /root/.ssh/id_rsa
+echo -e "$KEY" >/root/.ssh/id_ed25519
+if [ -f ./surgio-id-rsa ]; then
+    echo "█使用仓库中的ssh key"
+    cp -f ./surgio-id /root/.ssh/id_ed25519
+fi
+chmod 600 /root/.ssh/id_ed25519
 
 cloneRepo() {
     repoName=$1
@@ -34,10 +38,10 @@ ssh-keyscan "$REPO_DOMAIN" > /root/.ssh/known_hosts
 cloneRepo surgio "$REPO_URL" "$targetBranch"
 
 cp -f ./docker-entrypoint.sh /usr/local/bin
-cp -f ./surgio-id-rsa /root/.ssh/id_rsa
 
-npm config delete registry
-npm config set registry http://registry.npmjs.org
+#npm config delete registry
+#npm config set registry http://registry.npmjs.org
 npm install
 
+touch /surgio/nohup.out
 sh start.sh
