@@ -1,0 +1,101 @@
+version: '3.2'
+services:
+  # Database (Postgres)
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Storage (for image uploads)
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --address :"${MINIO_PORT}"
+    ports:
+      - "${MINIO_PORT}:${MINIO_PORT}"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: lowking
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+  # Chrome Browser (for printing and previews)
+  chrome:
+    image: ghcr.io/browserless/chromium:latest
+#    image: ghcr.io/browserless/chromium:v2.18.0
+#    image: browserless/chrome:1.61.0-puppeteer-21.4.1
+    restart: unless-stopped
+    extra_hosts:
+      - host.docker.internal:host-gateway
+      - "<public_url>:host-gateway"
+      - "<storage_url>:host-gateway"
+    environment:
+      EXIT_ON_HEALTH_FAILURE: "true"
+      PRE_REQUEST_HEALTH_CHECK: "true"
+      TIMEOUT: 50000
+      HEALTH: "true"
+      TOKEN: AVyffkTfHK
+      PROXY_HOST: "chrome"
+      PROXY_PORT: 3000
+
+      PROXY_SSL: "false"
+
+  app:
+    image: amruthpillai/reactive-resume:latest
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    depends_on:
+      - postgres
+      - minio
+      - chrome
+    environment:
+      # -- Environment Variables --
+      PORT: ${APP_PORT}
+      NODE_ENV: production
+
+      # -- URLs --
+      PUBLIC_URL: http://${IP_ADDRESS}:${APP_PORT}
+      STORAGE_URL: http://${IP_ADDRESS}:${APP_PORT}/storage
+#      PUBLIC_URL: http://localhost:${APP_PORT}
+#      STORAGE_URL: http://localhost:${MINIO_PORT}/storage
+
+      # -- Printer (Chrome) --
+      CHROME_TOKEN: AVyffkTfHK
+      CHROME_URL: ws://chrome:3000
+
+      # -- Database (Postgres) --
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+
+      # -- Auth --
+      ACCESS_TOKEN_SECRET: 5RSgmUYKzn
+      REFRESH_TOKEN_SECRET: SX2vqaPInj
+
+      # -- Emails --
+      MAIL_FROM: noreply@localhost
+      # SMTP_URL: smtp://user:pass@smtp:587 # Optional
+
+      # -- Storage (Minio) --
+      STORAGE_ENDPOINT: minio
+      STORAGE_PORT: ${MINIO_PORT}
+      STORAGE_REGION: us-east-1 # Optional
+      STORAGE_BUCKET: default
+      STORAGE_ACCESS_KEY: lowking
+      STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      STORAGE_USE_SSL: "false"
+      STORAGE_SKIP_BUCKET_CHECK: "false"
+
+volumes:
+  minio_data:
+  postgres_data:
+
