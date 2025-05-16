@@ -51,7 +51,7 @@ services:
       PROXY_SSL: "false"
 
   app:
-    image: amruthpillai/reactive-resume:latest
+    image: lowking/reactive-resume:latest
     restart: unless-stopped
     ports:
       - "${APP_PORT}:${APP_PORT}"
